@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LED SCREEN — UPS LEGENDS</title>
+  <!-- reuse banpick fonts + theme vars + .hide/.hero-animate helpers -->
+  <link rel="stylesheet" href="styles/banpick/base.css?v=17">
+  <link rel="stylesheet" href="styles/led/style.css?v=9">
+</head>
+<body class="led-page">
+<div id="stage" data-fit="contain">
+
+  <div class="overlay">
+
+    <!-- ============ TOP: tournament logo (centre) ============ -->
+    <div class="led-logo">
+      <img src="assets/ui/ups-logo.png" alt="UPS LEGENDS">
+    </div>
+
+    <!-- ============ TOP: team names + scores ============ -->
+    <div class="led-team blue">
+      <div class="score-box" id="name-box-2">0</div>
+      <div class="team-name" id="name-box-1">TEAM BLUE</div>
+    </div>
+    <div class="led-team red">
+      <div class="team-name" id="name-box-8">TEAM RED</div>
+      <div class="score-box" id="name-box-9">0</div>
+    </div>
+
+    <!-- ============ PICKS: 5 + 5 tall player cards ============ -->
+    <div class="led-picks left">
+      <div class="heropick">
+        <div id="image-box-1" class="image-box"><img id="image-display-1" src=""></div>
+        <div id="pick-left-1" class="box pick"></div>
+        <div class="nameplate" id="name-box-3"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-2" class="image-box"><img id="image-display-2" src=""></div>
+        <div id="pick-left-2" class="box pick"></div>
+        <div class="nameplate" id="name-box-4"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-3" class="image-box"><img id="image-display-3" src=""></div>
+        <div id="pick-left-3" class="box pick"></div>
+        <div class="nameplate" id="name-box-5"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-4" class="image-box"><img id="image-display-4" src=""></div>
+        <div id="pick-left-4" class="box pick"></div>
+        <div class="nameplate" id="name-box-6"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-5" class="image-box"><img id="image-display-5" src=""></div>
+        <div id="pick-left-5" class="box pick"></div>
+        <div class="nameplate" id="name-box-7"></div>
+        <div class="icon-lane"></div>
+      </div>
+    </div>
+
+    <!-- red group is DOM-mirrored (10..6) to match the banpick pick order -->
+    <div class="led-picks right">
+      <div class="heropick">
+        <div id="image-box-10" class="image-box"><img id="image-display-10" src=""></div>
+        <div id="pick-right-5" class="box pick"></div>
+        <div class="nameplate" id="name-box-14"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-9" class="image-box"><img id="image-display-9" src=""></div>
+        <div id="pick-right-4" class="box pick"></div>
+        <div class="nameplate" id="name-box-13"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-8" class="image-box"><img id="image-display-8" src=""></div>
+        <div id="pick-right-3" class="box pick"></div>
+        <div class="nameplate" id="name-box-12"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-7" class="image-box"><img id="image-display-7" src=""></div>
+        <div id="pick-right-2" class="box pick"></div>
+        <div class="nameplate" id="name-box-11"></div>
+        <div class="icon-lane"></div>
+      </div>
+      <div class="heropick">
+        <div id="image-box-6" class="image-box"><img id="image-display-6" src=""></div>
+        <div id="pick-right-1" class="box pick"></div>
+        <div class="nameplate" id="name-box-10"></div>
+        <div class="icon-lane"></div>
+      </div>
+    </div>
+
+    <!-- ============ BOTTOM: bans (4+4) + match info ============ -->
+    <div class="led-bans left">
+      <div class="banhero">
+        <div id="image-box-11" class="image-box"><img id="image-display-11" src=""></div>
+        <div id="ban-left-1" class="box2 ban0"></div>
+      </div>
+      <div class="banhero">
+        <div id="image-box-12" class="image-box"><img id="image-display-12" src=""></div>
+        <div id="ban-left-2" class="box2 ban0"></div>
+      </div>
+      <div class="banhero">
+        <div id="image-box-13" class="image-box"><img id="image-display-13" src=""></div>
+        <div id="ban-left-3" class="box2 ban0"></div>
+      </div>
+      <div class="banhero">
+        <div id="image-box-14" class="image-box"><img id="image-display-14" src=""></div>
+        <div id="ban-left-4" class="box2 ban0"></div>
+      </div>
+    </div>
+
+    <div class="led-matchinfo"><div id="boDisplay"></div></div>
+
+    <div class="led-bans right">
+      <div class="banhero">
+        <div id="image-box-16" class="image-box"><img id="image-display-16" src=""></div>
+        <div id="ban-right-1" class="box2 ban0"></div>
+      </div>
+      <div class="banhero">
+        <div id="image-box-17" class="image-box"><img id="image-display-17" src=""></div>
+        <div id="ban-right-2" class="box2 ban0"></div>
+      </div>
+      <div class="banhero">
+        <div id="image-box-18" class="image-box"><img id="image-display-18" src=""></div>
+        <div id="ban-right-3" class="box2 ban0"></div>
+      </div>
+      <div class="banhero">
+        <div id="image-box-19" class="image-box"><img id="image-display-19" src=""></div>
+        <div id="ban-right-4" class="box2 ban0"></div>
+      </div>
+    </div>
+
+  </div><!-- /.overlay -->
+
+  <!-- offscreen: elements banpick.js writes to but the LED doesn't show
+       (team logos, turn arrow, phase text, timer bar, legacy 5th slots) -->
+  <div class="hide">
+    <div id="image-box-15" class="image-box"><img id="image-display-15" src=""></div>
+    <div id="ban-left-5" class="box ban0"></div>
+    <div id="image-box-20" class="image-box"><img id="image-display-20" src=""></div>
+    <div id="ban-right-5" class="box ban0"></div>
+    <img id="displayImage1" src="" alt="Logo 1">
+    <img id="displayImage2" src="" alt="Logo 2">
+    <img id="arrow" src="" alt="Direction">
+    <div class="timerbar"><div id="timer-bar"></div></div>
+    <p class="countdown"><span id="timer">60</span></p>
+    <h2 id="phase"></h2>
+  </div>
+
+</div><!-- /#stage -->
+
+  <!-- No audio elements on the LED: playSFX/playVoice guard on missing nodes,
+       so the LED stays silent (sound is handled by the broadcast overlay). -->
+
+  <script src="scripts/wsClient.js"></script>
+  <script src="scripts/banpick.js?v=20"></script>
+  <script src="scripts/led.js?v=1"></script>
+  <script src="scripts/pickflow.js?v=4"></script>
+</body>
+</html>

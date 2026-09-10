@@ -1,0 +1,861 @@
+/* ============================================================
+   LED SCREEN — UPS LEGENDS
+   A fixed 1984x1280 stage scaled to fit (contain) by banpick.js
+   fitStage() when <body> is .led-page.
+
+   No baked background: every piece is a live component reusing the
+   banpick element ids, so the control panel drives them. Pick cards
+   show the tall /assets/heroes_led splash art (remapped in led.js).
+
+   Tune the layout with the CSS variables on #stage; add class
+   `debug` to #stage to outline every region.
+   ============================================================ */
+
+body.led-page {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent; /* LED is an overlay source — no background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.led-page #stage {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: 1984px;
+  height: 1280px;
+  flex: 0 0 auto;
+  transform: scale(var(--scale, 1));
+  transform-origin: center center;
+  color: var(--gold, #fffbc7);
+  background: transparent; /* transparent behind every component */
+
+  /* ---- tunable layout regions (in 1984x1280 stage px, measured off led.jpg) ---- */
+  --side-pad: 54px;
+  --team-top: 186px;
+  --team-h: 80px;
+  --card-top: 280px;
+  --card-h: 732px;
+  --group-w: 862px;
+  --card-gap: 14px;
+  --bans-top: 1036px;
+  --bans-h: 114px;
+  --info-w: 520px;
+  --info-top: 1036px; /* = --bans-top, so the plate sits on the ban row */
+  --info-h: 114px; /* = --bans-h */
+}
+
+/* calibration guide: add class "calib" to <body> to see the mockup behind
+   the live components for alignment. Off by default (production = transparent). */
+body.led-page.calib #stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url("../../assets/ui/led-ref.jpg") center / 100% 100% no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+body.led-page .overlay {
+  position: absolute;
+  inset: 0;
+  width: 1984px; /* override banpick base.css .overlay { width: 1920px } */
+  height: 1280px;
+  z-index: 1;
+}
+
+/* ============================================================
+   TOP — tournament logo (centre)
+   ============================================================ */
+.led-logo {
+  position: absolute;
+  top: 57px;
+  left: 700px; /* nudged left of the measured centre */
+  width: 558px;
+  display: flex;
+  justify-content: center;
+}
+.led-logo img {
+  width: 558px;
+  height: auto;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.6));
+  animation: ledLogoFloat 3.6s ease-in-out infinite; /* gentle bob, like banpick */
+}
+@keyframes ledLogoFloat {
+  0%,
+  100% {
+    transform: translateY(4px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ============================================================
+   TEAM NAME + SCORE (top corners)
+   ============================================================ */
+.led-team {
+  position: absolute;
+  top: var(--team-top);
+  height: var(--team-h);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.led-team.blue {
+  left: 62px; /* measured: score box starts at x62 */
+}
+.led-team.red {
+  right: 62px;
+}
+/* score box + name use the same "Victoire" style as banpick */
+.score-box {
+  position: relative;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  font-family: "Victoire", "myfonts", sans-serif;
+  font-size: 66px;
+  line-height: 1;
+  color: var(--purple, #7a1fd0);
+  background: var(--gold, #fffbc7);
+}
+/* Victoire hangs glyphs low — centre the number and lift it (like banpick) */
+.score-box .num,
+.score-box .num-out {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 16px;
+  box-sizing: border-box;
+}
+/* score roll on change (same as banpick): new number slides in, old slides out */
+@keyframes ledScoreOutUp {
+  to {
+    transform: translateY(-105%);
+    opacity: 0;
+  }
+}
+@keyframes ledScoreInUp {
+  from {
+    transform: translateY(105%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes ledScoreOutDown {
+  to {
+    transform: translateY(105%);
+    opacity: 0;
+  }
+}
+@keyframes ledScoreInDown {
+  from {
+    transform: translateY(-105%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.score-box .roll-out-up {
+  animation: ledScoreOutUp 0.4s ease forwards;
+}
+.score-box .roll-in-up {
+  animation: ledScoreInUp 0.4s ease forwards;
+}
+.score-box .roll-out-down {
+  animation: ledScoreOutDown 0.4s ease forwards;
+}
+.score-box .roll-in-down {
+  animation: ledScoreInDown 0.4s ease forwards;
+}
+.team-name {
+  font-family: "Victoire", "myfonts", sans-serif;
+  font-size: 88px;
+  line-height: 1;
+  padding-bottom: 20px; /* lift text to the row centre (Victoire quirk) */
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold, #fffbc7);
+  white-space: nowrap;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.led-team.red .team-name {
+  text-align: right;
+}
+
+/* ============================================================
+   PLAYER PICK CARDS (5 + 5 tall banners)
+   ============================================================ */
+.led-picks {
+  position: absolute;
+  top: var(--card-top);
+  height: var(--card-h);
+  width: var(--group-w);
+  display: flex;
+  gap: var(--card-gap);
+}
+/* original spacing (fits the led.jpg card band now the overlay is a true 1984) */
+.led-picks.left {
+  left: var(--side-pad);
+}
+.led-picks.right {
+  right: var(--side-pad);
+}
+
+.led-picks .heropick {
+  position: relative;
+  isolation: isolate;
+  flex: 1 1 0;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 3px;
+  --flow-cover: 1.3; /* matches the "auto 130%" texture framing (used by pickflow.js) */
+  /* purple base + Vector-pick halftone texture (shows behind the photo/hero) */
+  background:
+    url("../../assets/ui/vector-pick.png") center / auto 130% no-repeat,
+    linear-gradient(180deg, #3a1770 0%, #24094a 100%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+/* ---- pick-turn: flowing texture canvas + running border light (like banpick) ---- */
+.led-picks .heropick .card-flow {
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* above the base texture, below the player photo (2) */
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  opacity: 1;
+  border-radius: inherit;
+}
+/* dark overlay dimming the flow until it's this card's turn: above the flow (z1),
+   below the player photo (z2) so the portrait always keeps its true colours.
+   Dropped on the active (picking) card. */
+.led-picks .heropick::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above the flow (1); paints below the same-z player photo */
+  pointer-events: none;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.4);
+  transition: background-color 0.45s ease;
+}
+.led-picks .heropick.picking::before {
+  background: transparent;
+}
+@property --pa {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 90;
+}
+.led-picks .pick-turn-glow {
+  display: none;
+}
+.led-picks .heropick.picking .pick-turn-glow {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 3px;
+  background: conic-gradient(
+    from calc(var(--pa) * 1deg),
+    #fff8dc 0deg,
+    rgba(255, 247, 214, 0) 7deg,
+    rgba(255, 247, 214, 0) 128deg,
+    rgba(255, 240, 190, 0.12) 140deg,
+    rgba(255, 245, 205, 0.55) 170deg,
+    #fff8dc 180deg,
+    rgba(255, 247, 214, 0) 187deg,
+    rgba(255, 247, 214, 0) 308deg,
+    rgba(255, 240, 190, 0.12) 320deg,
+    rgba(255, 245, 205, 0.55) 350deg,
+    #fff8dc 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 4px #ffe79a) drop-shadow(0 0 9px #f2c33e);
+  animation: pickRun 1.8s linear infinite;
+}
+.led-picks .heropick.picking {
+  box-shadow:
+    inset 0 0 12px rgba(255, 226, 140, 0.45),
+    0 0 12px rgba(246, 201, 62, 0.5);
+}
+@keyframes pickRun {
+  from {
+    --pa: 0;
+  }
+  to {
+    --pa: 360;
+  }
+}
+/* ---- swap-end lock effect: a light sweeps across + the art pulses (banpick-style) ---- */
+.led-picks .heropick.lock-fx::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 7; /* over art/photo/gradient, under the running-light glow (8) */
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%);
+  animation: ledPickShine 0.7s ease 0.05s both;
+}
+@keyframes ledPickShine {
+  from {
+    transform: translateX(-130%);
+  }
+  to {
+    transform: translateX(130%);
+  }
+}
+.led-picks .heropick.lock-fx .image-box img,
+.led-picks .heropick.lock-fx .player-photo {
+  animation: ledPickLockPulse 0.5s ease both;
+}
+@keyframes ledPickLockPulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* team accent border (matches banpick: gold left, purple right) */
+.led-picks.left .heropick {
+  border: 3px solid var(--gold, #fffbc7);
+  /* LEFT team static fallback: gold streaks over gold #fffbc7 (matches the
+     left-team flow pass in pickflow.js; the flow canvas covers this once loaded) */
+  background:
+    url("../../assets/ui/vector-pick-2.png") center / auto 130% no-repeat,
+    #fffbc7;
+}
+.led-picks.right .heropick {
+  border: 3px solid #5813b1;
+}
+
+/* player photo (default) fills the card */
+.led-picks .heropick .player-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-color: transparent;
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  /* nudge the portrait down ~68px (scale kept as-is) */
+  transform: translateY(68px) scale(1.04);
+}
+
+/* hero splash (heroes_led, 444x2048) shown once picked — covers the photo */
+.led-picks .heropick .image-box {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+.led-picks .heropick .image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* pick-turn wiring element — not shown */
+.led-picks .heropick .pick {
+  display: none;
+}
+
+/* bottom gradient in the team colour (like banpick) — also aids name legibility */
+.led-picks .heropick::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  z-index: 4;
+  pointer-events: none;
+}
+.led-picks.left .heropick::after {
+  background: linear-gradient(
+    to top,
+    var(--gold, #fffbc7) 0%,
+    transparent 100%
+  );
+}
+.led-picks.right .heropick::after {
+  background: linear-gradient(to top, #5813b1 0%, transparent 100%);
+}
+
+/* hero pick reveal fade (same feel as banpick's zoomFadeIn on the image-box) */
+.led-picks .heropick .image-box img {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* player name — vertical, reading TOP → BOTTOM; colour is opposite the accent
+   (purple on the gold side, gold on the purple side) like banpick */
+.led-picks .nameplate {
+  position: absolute;
+  left: 4px;
+  top: 34%; /* starts lower-middle and runs down over the gradient */
+  bottom: 10px;
+  z-index: 6;
+  writing-mode: vertical-rl; /* reads top → bottom */
+  text-align: end; /* the name hugs the bottom, growing upward as it lengthens */
+  font-family: "Extenda-30-Deca", "myfonts", sans-serif;
+  font-size: 42px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.led-picks.left .nameplate {
+  color: #3a0d78;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+.led-picks.right .nameplate {
+  color: var(--gold, #fffbc7);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85);
+  /* mirror of the left team: name on the right edge, rotated 180° so the two
+     teams are point-symmetric; text-align flips to start so it still hugs the bottom */
+  left: auto;
+  right: 4px;
+  transform: rotate(180deg);
+  text-align: start;
+}
+
+/* ---- corner lane badge (bottom-right), lane order matches banpick ---- */
+.led-picks .icon-lane {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 48px;
+  height: 48px;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.led-picks.left .icon-lane {
+  background: var(--gold, #fffbc7);
+}
+.led-picks.right .icon-lane {
+  background: #5813b1;
+  /* mirror of the left team: lane badge in the bottom-left corner */
+  right: auto;
+  left: 0;
+}
+.led-picks .icon-lane::after {
+  content: "";
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+.led-picks.left .icon-lane::after {
+  background-color: #5813b1;
+}
+.led-picks.right .icon-lane::after {
+  background-color: var(--gold, #fffbc7);
+}
+/* blue side: TOP → JUNG → MID → AD → SP */
+.led-picks.left .heropick:nth-child(1) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/TOP.svg");
+  mask-image: url("../../assets/lanes/TOP.svg");
+}
+.led-picks.left .heropick:nth-child(2) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/JUNG.svg");
+  mask-image: url("../../assets/lanes/JUNG.svg");
+}
+.led-picks.left .heropick:nth-child(3) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/MID.svg");
+  mask-image: url("../../assets/lanes/MID.svg");
+}
+.led-picks.left .heropick:nth-child(4) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/AD.svg");
+  mask-image: url("../../assets/lanes/AD.svg");
+}
+.led-picks.left .heropick:nth-child(5) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/SP.svg");
+  mask-image: url("../../assets/lanes/SP.svg");
+}
+/* red side is DOM-mirrored (10..6): SP → AD → MID → JUNG → TOP */
+.led-picks.right .heropick:nth-child(1) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/SP.svg");
+  mask-image: url("../../assets/lanes/SP.svg");
+}
+.led-picks.right .heropick:nth-child(2) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/AD.svg");
+  mask-image: url("../../assets/lanes/AD.svg");
+}
+.led-picks.right .heropick:nth-child(3) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/MID.svg");
+  mask-image: url("../../assets/lanes/MID.svg");
+}
+.led-picks.right .heropick:nth-child(4) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/JUNG.svg");
+  mask-image: url("../../assets/lanes/JUNG.svg");
+}
+.led-picks.right .heropick:nth-child(5) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/TOP.svg");
+  mask-image: url("../../assets/lanes/TOP.svg");
+}
+
+/* ============================================================
+   BANS (4 + 4, bottom corners)
+   ============================================================ */
+.led-bans {
+  position: absolute;
+  top: var(--bans-top);
+  height: var(--bans-h);
+  display: flex;
+  gap: 12px;
+}
+.led-bans.left {
+  left: var(--side-pad);
+}
+.led-bans.right {
+  right: var(--side-pad);
+}
+.led-bans .banhero {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 1 / 1; /* square (portraits crop cleanly, no stretch) */
+  overflow: hidden;
+  border: 2px solid var(--gold, #fffbc7);
+  /* gold hatched texture — the empty ban placeholder / lock background */
+  background: url("../../assets/ui/ban-gold.png") center / cover no-repeat;
+}
+.led-bans .banhero .image-box {
+  position: absolute;
+  inset: 0;
+}
+.led-bans .banhero .image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top; /* crops the regular portrait to the square, like banpick */
+}
+/* greyed only once locked (in colour while being banned), like banpick */
+.led-bans .banhero .image-box.locked img {
+  filter: grayscale(100%) brightness(0.62);
+}
+/* ---- lock effect: diagonal X drawn from the corners + glow + pulse (banpick) ---- */
+.led-bans .banhero .image-box.locked::before,
+.led-bans .banhero .image-box.locked::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 141.42%; /* diagonal of the square */
+  height: 3px;
+  background: rgba(225, 225, 225, 0.92);
+  z-index: 4;
+  pointer-events: none;
+}
+.led-bans .banhero .image-box.locked::before {
+  top: 0;
+  transform-origin: top left;
+  transform: rotate(45deg);
+}
+.led-bans .banhero .image-box.locked::after {
+  bottom: 0;
+  transform-origin: bottom left;
+  transform: rotate(-45deg);
+}
+.led-bans .banhero .image-box.lock-fx::before {
+  animation:
+    banDrawA 0.3s ease both,
+    banLineGlow 0.6s ease both;
+}
+.led-bans .banhero .image-box.lock-fx::after {
+  animation:
+    banDrawB 0.3s ease 0.08s both,
+    banLineGlow 0.6s ease 0.08s both;
+}
+.led-bans .banhero .image-box.lock-fx img {
+  animation: banLockPulse 0.55s ease 0.3s both;
+}
+@keyframes banDrawA {
+  from {
+    transform: rotate(45deg) scaleX(0);
+  }
+  to {
+    transform: rotate(45deg) scaleX(1);
+  }
+}
+@keyframes banDrawB {
+  from {
+    transform: rotate(-45deg) scaleX(0);
+  }
+  to {
+    transform: rotate(-45deg) scaleX(1);
+  }
+}
+@keyframes banLineGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  }
+  40% {
+    box-shadow: 0 0 9px 1px rgba(255, 255, 255, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+@keyframes banLockPulse {
+  0% {
+    transform: scale(1);
+    filter: grayscale(0) brightness(1);
+  }
+  45% {
+    transform: scale(1.14);
+    filter: grayscale(0.35) brightness(1.15);
+  }
+  100% {
+    transform: scale(1);
+    filter: grayscale(1) brightness(0.62);
+  }
+}
+.led-bans .box2 {
+  display: none; /* X overlay wiring — not shown */
+}
+
+/* ============================================================
+   MATCH INFO (centre bottom) — the BO / round text on a plate
+   ============================================================ */
+.led-matchinfo {
+  position: absolute;
+  left: 50%;
+  top: var(--info-top);
+  transform: translateX(-50%);
+  width: var(--info-w);
+  height: var(--info-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* purple textured plate (Vector BO) */
+  background: url("../../assets/ui/vector-bo.png") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+}
+#boDisplay {
+  font-family: "BigShouldersText-SemiBold", "myfonts", sans-serif;
+  font-size: 52px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-bright, #fffff0);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28em;
+}
+/* vertical divider between round and BO — a thin rule a touch taller than the text */
+#boDisplay .bo-sep {
+  width: 3px;
+  height: 1.05em;
+  background: currentColor;
+  border-radius: 1.5px;
+}
+
+/* ============================================================
+   DEBUG — add class "debug" to #stage to see region boxes
+   ============================================================ */
+#stage.debug .led-team,
+#stage.debug .led-picks .heropick,
+#stage.debug .led-bans .banhero,
+#stage.debug .led-matchinfo,
+#stage.debug .led-logo {
+  outline: 2px solid rgba(255, 0, 80, 0.9);
+}
+#stage.debug .led-picks .nameplate {
+  outline: 2px solid rgba(0, 200, 255, 0.9);
+}
+
+/* ============================================================
+   LED INTRO — played once when Start is pressed at phase 0
+   (banpick.js toggles .overlay.shown + .overlay.intro).
+
+   Choreography:
+   1) the "SEMI - BO4" plate fades in near the TOP of the pick band;
+   2) the logo slides down from above and slams onto the plate;
+   3) the plate drops to its final spot at the bottom, and as it
+      passes the middle the two centre-most pick cards fade in;
+   4) the other pick cards then deal outward from the centre to both
+      sides (like fanning out cards).
+   Timings are in the keyframes/delays below — easy to retune.
+   ============================================================ */
+body.led-page .overlay {
+  opacity: 0; /* hidden until Start (.shown) */
+}
+body.led-page .overlay.shown {
+  opacity: 1;
+}
+
+/* --- 1 & 3: the SEMI plate — slow fade in high; the moment the logo presses on
+   its top it slides smoothly down to the bottom (one continuous eased fall, no
+   kink → no stutter; impact & push are synced) --- */
+@keyframes ledSemiIntro {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -760px);
+  }
+  22% {
+    opacity: 1;
+    transform: translate(-50%, -760px);
+  } /* fade-in (~0.55s) */
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -760px);
+  } /* short hold — starts sliding early (~0.75s) */
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  } /* one smooth fall to the bottom */
+}
+.overlay.intro .led-matchinfo {
+  animation: ledSemiIntro 2.5s cubic-bezier(0.5, 0, 0.3, 1) both;
+}
+
+/* --- 2: the logo just drops smoothly straight to its final spot at the top
+   (no tap / no rebound) --- */
+@keyframes ledLogoIntro {
+  0% {
+    opacity: 0;
+    transform: translateY(-320px);
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(-320px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  } /* soft landing at the top */
+}
+.overlay.intro .led-logo {
+  animation: ledLogoIntro 1.3s cubic-bezier(0.33, 0, 0.2, 1) both;
+}
+.overlay.intro .led-logo img {
+  animation: none; /* pause the idle bob during the slam */
+}
+
+/* --- 3: the two centre-most cards are WIPED into view top→bottom, tracking the
+   plate as it slides past (same timeline + easing as the plate's fall, so the
+   reveal edge stays under the sliding plate — not a fade) --- */
+@keyframes ledCardReveal {
+  /* negative side/bottom insets keep the drop-shadow inside the clip region, so
+     the shadow reveals smoothly with the card instead of popping in at the end */
+  from {
+    clip-path: inset(0 -40px 100% -40px);
+  } /* fully clipped (hidden) */
+  to {
+    clip-path: inset(0 -40px -40px -40px);
+  } /* fully revealed incl. shadow */
+}
+.overlay.intro .led-picks.left .heropick:nth-child(5),
+.overlay.intro .led-picks.right .heropick:nth-child(1) {
+  /* delay 0.75s = when the plate starts to fall; dur 1.75s = the fall's length */
+  animation: ledCardReveal 1.75s cubic-bezier(0.5, 0, 0.3, 1) 0.75s both;
+}
+
+/* --- 4: the rest deal outward from the centre, inner → outer.
+   The drop-shadow stays invisible while the card slides and only FADES in once it
+   lands (no hard shadow jumping in) --- */
+@keyframes ledDeal {
+  0% {
+    opacity: 0;
+    transform: translateX(var(--deal, 0));
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0);
+  }
+  62% {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  }
+}
+.overlay.intro .led-picks.left .heropick:nth-child(4) {
+  --deal: 175px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.45s both;
+}
+.overlay.intro .led-picks.left .heropick:nth-child(3) {
+  --deal: 350px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.56s both;
+}
+.overlay.intro .led-picks.left .heropick:nth-child(2) {
+  --deal: 525px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.67s both;
+}
+.overlay.intro .led-picks.left .heropick:nth-child(1) {
+  --deal: 700px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.78s both;
+}
+.overlay.intro .led-picks.right .heropick:nth-child(2) {
+  --deal: -175px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.45s both;
+}
+.overlay.intro .led-picks.right .heropick:nth-child(3) {
+  --deal: -350px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.56s both;
+}
+.overlay.intro .led-picks.right .heropick:nth-child(4) {
+  --deal: -525px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.67s both;
+}
+.overlay.intro .led-picks.right .heropick:nth-child(5) {
+  --deal: -700px;
+  animation: ledDeal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) 2.78s both;
+}
+
+/* team names/scores + bans fade in near the end (slower) so nothing pops early */
+@keyframes ledFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.overlay.intro .led-team,
+.overlay.intro .led-bans {
+  animation: ledFadeIn 0.9s ease 2.8s both;
+}

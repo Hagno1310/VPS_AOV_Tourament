@@ -1,0 +1,183 @@
+/* ============================================================
+   CENTER — the trophy cup and the round/BO plate between the
+   two pick groups.
+   ============================================================ */
+
+.center {
+  width: 256px;
+  /* taller than the pick row (250) by the gap (20) so — being bottom-aligned —
+     it overflows upward and the cup's peak reaches the timer bar; the plate
+     sits at the very bottom, level with the pick cards */
+  height: 270px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end; /* cup + plate both at the bottom, cup lowered near the plate */
+  gap: 8px; /* distance between the cup and the SEMI plate */
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+/* ---- cup + its glow / sparkle stack ---- */
+.cup-wrap {
+  position: relative;
+  isolation: isolate; /* scope the glow (z-index:-1) behind the cup */
+  width: 172px;
+  line-height: 0; /* kill the inline gap under the img */
+}
+.cup {
+  position: relative;
+  z-index: 1;
+  width: 172px; /* scaled down a touch */
+  height: auto;
+  object-fit: contain;
+  /* grounding shadow + a soft warm glow so the cup itself reads as lit */
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 12px rgba(255, 226, 150, 0.4));
+  animation: cupFloat 4.2s ease-in-out infinite;
+}
+/* gentle idle bob (up/down only) */
+@keyframes cupFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+/* soft golden halo that breathes behind the cup */
+.cup-wrap::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 46%;
+  width: 150%;
+  height: 130%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 244, 190, 0.55) 0%,
+    rgba(255, 214, 120, 0.28) 34%,
+    rgba(255, 200, 90, 0.1) 55%,
+    transparent 72%
+  );
+  filter: blur(6px);
+  pointer-events: none;
+  animation: cupGlow 3.4s ease-in-out infinite;
+}
+@keyframes cupGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+/* twinkling star sparkles scattered around the cup */
+.cup-sparkle {
+  position: absolute;
+  z-index: 2;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, #fffef2 0%, #fff2b0 38%, transparent 70%);
+  /* four-point star */
+  clip-path: polygon(
+    50% 0%,
+    61% 39%,
+    100% 50%,
+    61% 61%,
+    50% 100%,
+    39% 61%,
+    0% 50%,
+    39% 39%
+  );
+  filter: drop-shadow(0 0 4px rgba(255, 240, 180, 0.9));
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+  animation: cupSparkle 2.8s ease-in-out infinite;
+}
+@keyframes cupSparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+  65% {
+    opacity: 0.75;
+    transform: scale(0.85) rotate(75deg);
+  }
+}
+.cup-sparkle.s1 {
+  top: 10%;
+  left: 4%;
+  width: 15px;
+  height: 15px;
+  animation-delay: 0.2s;
+}
+.cup-sparkle.s2 {
+  top: 24%;
+  right: -2%;
+  width: 11px;
+  height: 11px;
+  animation-delay: 1.2s;
+}
+.cup-sparkle.s3 {
+  top: 50%;
+  left: -2%;
+  width: 12px;
+  height: 12px;
+  animation-delay: 1.9s;
+}
+.cup-sparkle.s4 {
+  top: 8%;
+  right: 14%;
+  width: 9px;
+  height: 9px;
+  animation-delay: 0.8s;
+}
+.cup-sparkle.s5 {
+  top: 40%;
+  right: 6%;
+  width: 13px;
+  height: 13px;
+  animation-delay: 2.4s;
+}
+.bo-plate {
+  min-width: 200px;
+  height: 46px;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url("../../assets/ui/bo-frame.png") center / 100% 100% no-repeat;
+}
+#boDisplay {
+  font-family: "BigShouldersText-SemiBold", sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28em;
+}
+/* vertical divider between round and BO — a thin rule a touch taller than the text */
+#boDisplay .bo-sep {
+  width: 2px;
+  height: 1.05em;
+  background: currentColor;
+  border-radius: 1px;
+}

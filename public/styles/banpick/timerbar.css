@@ -1,0 +1,26 @@
+/* ============================================================
+   TIMER BAR — thin bar under the score bar, aligned with the
+   card cells. The white track is the remaining time; #timer-bar is
+   a purple "eraser" that grows from the centre outward as the
+   countdown depletes, so the white recedes toward both edges.
+   ============================================================ */
+
+.timerbar {
+  width: 1854px; /* aligns with the card cells (33px padding each side) */
+  align-self: center;
+  height: 10px;
+  background-color: #fefefe; /* white = remaining time (full width at the start) */
+  position: relative;
+  top: 22px; /* moved down together with the score bar */
+  overflow: hidden;
+}
+#timer-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #5813b1; /* purple eraser, grows from the centre out */
+  position: relative;
+  z-index: 3;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0); /* empty at the start (full time) */
+  transform-origin: center;
+}

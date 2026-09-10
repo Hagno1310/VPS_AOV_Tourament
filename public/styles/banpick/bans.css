@@ -1,0 +1,100 @@
+/* ============================================================
+   BAN SLOTS — the gold squares at each edge of the score bar.
+   Empty = gold placeholder; locked = greyscale portrait + grey X.
+   ============================================================ */
+
+.ban-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0px; /* symmetric so the squares centre in the score bar (same row as names/scores) */
+}
+/* red-side bans slightly mirrored so the newest sits toward center */
+.ban-right {
+  flex-direction: row;
+}
+
+.banhero {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  overflow: hidden;
+  border: 1px solid var(--gold);
+  /* empty slot: gold striped placeholder (BAN 1.png) */
+  background: url("../../assets/ui/ban-frame.png") center / cover no-repeat;
+}
+.banhero .image-box {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.banhero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  /* while being banned (not yet locked) the hero shows in full colour */
+}
+
+/* once locked: greyscale the portrait */
+.banhero .image-box.locked img {
+  filter: grayscale(100%) brightness(0.62);
+}
+/* the two diagonal lines, each anchored at a corner so it can "draw" outward */
+.banhero .image-box.locked::before,
+.banhero .image-box.locked::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 141.42%; /* diagonal of the square box */
+  height: 2px;
+  background: rgba(220, 220, 220, 0.9);
+  z-index: 4;
+  pointer-events: none;
+}
+.banhero .image-box.locked::before {
+  /* "\" : top-left → bottom-right */
+  top: 0;
+  transform-origin: top left;
+  transform: rotate(45deg);
+}
+.banhero .image-box.locked::after {
+  /* "/" : bottom-left → top-right */
+  bottom: 0;
+  transform-origin: bottom left;
+  transform: rotate(-45deg);
+}
+
+/* ---- LOCK effect (synced with the ban SFX): the X draws from the corners with
+   a soft glow, then the portrait pulses once and fades to greyscale ---- */
+.banhero .image-box.lock-fx::before {
+  animation:
+    banDrawA 0.3s ease both,
+    banLineGlow 0.6s ease both;
+}
+.banhero .image-box.lock-fx::after {
+  animation:
+    banDrawB 0.3s ease 0.08s both,
+    banLineGlow 0.6s ease 0.08s both;
+}
+@keyframes banDrawA {
+  from { transform: rotate(45deg) scaleX(0); }
+  to   { transform: rotate(45deg) scaleX(1); }
+}
+@keyframes banDrawB {
+  from { transform: rotate(-45deg) scaleX(0); }
+  to   { transform: rotate(-45deg) scaleX(1); }
+}
+@keyframes banLineGlow {
+  0%   { box-shadow: 0 0 0 rgba(255, 255, 255, 0); }
+  40%  { box-shadow: 0 0 9px 1px rgba(255, 255, 255, 0.9); }
+  100% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); }
+}
+.banhero .image-box.lock-fx img {
+  animation: banLockPulse 0.55s ease 0.3s both;
+}
+@keyframes banLockPulse {
+  0%   { transform: scale(1);    filter: grayscale(0)    brightness(1); }
+  45%  { transform: scale(1.14); filter: grayscale(0.35) brightness(1.15); }
+  100% { transform: scale(1);    filter: grayscale(1)    brightness(0.62); }
+}

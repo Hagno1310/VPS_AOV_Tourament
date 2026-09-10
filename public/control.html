@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DRAFT DECK — CONTROL</title>
+    <link rel="stylesheet" href="styles/control.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ===== command bar ===== -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="kicker">AOG Ban / Pick</span>
+          <span class="name">DRAFT DECK</span>
+        </div>
+
+        <div class="stepwrap">
+          <span class="step-index" id="stepIndex">01</span>
+          <span class="step-total">/ 16</span>
+        </div>
+
+        <div class="phasechip" id="phaseChip" data-team="blue">BLUE · BAN</div>
+
+        <div class="topbar-right">
+          <div class="clock" id="clock">
+            <span class="time" id="timerNum">60</span>
+          </div>
+          <div class="status offline" id="status">offline</div>
+        </div>
+      </header>
+
+      <!-- ===== controls ===== -->
+      <div class="controls">
+        <div class="controls-group">
+          <button class="btn go" data-cmd="timerStart">Start</button>
+          <button class="btn" data-cmd="timerStop">Stop</button>
+          <button class="btn" data-cmd="timerReset">Reset timer</button>
+        </div>
+        <div class="controls-group">
+          <button class="btn" data-cmd="prevPhase">◀ Prev</button>
+          <button class="btn primary" data-cmd="nextPhase">
+            Lock &amp; next ▶
+          </button>
+        </div>
+        <div class="controls-group">
+          <button class="btn toggle" id="btnCorrection" aria-pressed="false">
+            Correction
+          </button>
+          <button class="btn toggle" id="btnSwap" aria-pressed="false">
+            Swap
+          </button>
+          <button class="btn danger" data-cmd="resetDraft">Reset draft</button>
+        </div>
+        <div class="controls-spacer"></div>
+        <button
+          class="btn config-btn"
+          id="btnConfig"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          Teams &amp; match
+        </button>
+      </div>
+
+      <!-- ===== workspace: ladder | picker ===== -->
+      <main class="workspace">
+        <section class="col">
+          <div class="col-head">
+            <span class="title">Draft sequence</span>
+            <span class="sub">theo thứ tự thi đấu</span>
+          </div>
+          <div class="ladder" id="ladder"></div>
+        </section>
+
+        <aside class="col">
+          <div class="col-head">
+            <span class="title">Hero picker</span>
+            <span class="sub" id="pickCount"></span>
+          </div>
+          <div class="picker-search">
+            <input
+              type="text"
+              id="heroSearch"
+              class="search"
+              placeholder="Tìm tướng… (gõ tên)"
+            />
+            <div class="hint" id="hint">Bấm 1 ô ở cột trái để chọn vị trí</div>
+          </div>
+          <div class="grid" id="heroGrid"></div>
+        </aside>
+      </main>
+    </div>
+
+    <!-- ===== config drawer ===== -->
+    <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+    <aside
+      class="drawer"
+      id="configDrawer"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Cấu hình đội và trận"
+      aria-hidden="true"
+    >
+      <div class="drawer-head">
+        <h2>Teams &amp; match</h2>
+        <button class="drawer-close" id="drawerClose" aria-label="Đóng">
+          ✕
+        </button>
+      </div>
+      <div class="drawer-body">
+        <div class="team" data-side="blue">
+          <div class="team-top">
+            <h3>Blue side</h3>
+          </div>
+          <label class="field"
+            ><span>Tên đội</span
+            ><input type="text" data-field="name" placeholder="Tên đội xanh"
+          /></label>
+          <div class="inline">
+            <label class="field"
+              ><span>Điểm</span
+              ><input type="number" data-field="score" value="0" min="0"
+            /></label>
+          </div>
+          <div class="lineup">
+            <span class="group-label">Đội hình · 5 người chơi</span>
+            <div class="players" data-players="blue"></div>
+          </div>
+        </div>
+
+        <div class="match-row">
+          <label class="field"
+            ><span>Vòng đấu</span
+            ><input type="text" id="roundInput" placeholder="SEMI"
+          /></label>
+          <label class="field"
+            ><span>Best of</span
+            ><input type="text" id="boInput" placeholder="BO5"
+          /></label>
+          <div class="match-actions">
+            <button class="btn" data-swap="names">⇄ Switch team</button>
+          </div>
+        </div>
+
+        <div class="team" data-side="red">
+          <div class="team-top">
+            <h3>Red side</h3>
+          </div>
+          <label class="field"
+            ><span>Tên đội</span
+            ><input type="text" data-field="name" placeholder="Tên đội đỏ"
+          /></label>
+          <div class="inline">
+            <label class="field"
+              ><span>Điểm</span
+              ><input type="number" data-field="score" value="0" min="0"
+            /></label>
+          </div>
+          <div class="lineup">
+            <span class="group-label">Đội hình · 5 người chơi</span>
+            <div class="players" data-players="red"></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== swap preview (opens with the Swap toggle) ===== -->
+    <div class="swap-preview" id="swapPreview" hidden>
+      <div class="swap-head">
+        <div class="swap-titles">
+          <span class="swap-title">Swap tướng</span>
+          <span class="swap-sub" id="swapHint"
+            >Bấm 1 card, rồi bấm card cùng đội để đổi tướng. Bấm lại card đang
+            sáng để huỷ.</span
+          >
+        </div>
+        <button class="btn" id="swapDone">Xong</button>
+      </div>
+      <div class="swap-cards" id="swapCards"></div>
+    </div>
+
+    <script src="scripts/wsClient.js"></script>
+    <script src="scripts/control.js"></script>
+  </body>
+</html>

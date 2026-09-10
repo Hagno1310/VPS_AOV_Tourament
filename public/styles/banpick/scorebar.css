@@ -1,0 +1,149 @@
+/* ============================================================
+   SCORE BAR — the top strip: team names, score boxes, center logo.
+   (Ban slots live in bans.css; the timer bar in timerbar.css.)
+   ============================================================ */
+
+.scorebar {
+  width: 1854px; /* same frame as the timer bar / cards (33px inset each side) */
+  align-self: center;
+  height: 90px;
+  box-sizing: border-box;
+  padding: 0;
+  position: relative;
+  top: 22px; /* lower the whole score bar + timer down a notch (moved with .timerbar) */
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  justify-content: space-between;
+  background: linear-gradient(
+    to top,
+    rgba(122, 31, 208, 0.6) 0%,
+    rgba(122, 31, 208, 0.42) 15%,
+    rgba(122, 31, 208, 0.24) 30%,
+    rgba(122, 31, 208, 0.1) 45%,
+    rgba(122, 31, 208, 0) 62%
+  );
+}
+
+/* ------- match info (center of score bar) ------- */
+.matchinfo {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  height: 100%;
+}
+.team-name {
+  font-family: "Victoire", "myfonts", sans-serif;
+  font-weight: normal;
+  font-size: 76px; /* same size as the score */
+  line-height: 1;
+  /* Victoire hangs the glyphs low (fontDescent 0); this lifts the text to the
+     score-bar centre so names, scores and ban squares sit on one row */
+  padding-bottom: 20px;
+  letter-spacing: 1px;
+  color: var(--gold);
+  text-transform: uppercase;
+  max-width: 460px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.team-name.blue {
+  text-align: right;
+}
+.team-name.red {
+  text-align: left;
+}
+
+.team-score {
+  position: relative;
+  overflow: hidden; /* clip the rolling number */
+  min-width: 72px;
+  height: 72px;
+  box-sizing: border-box;
+  font-family: "Victoire", "myfonts", sans-serif;
+  font-weight: normal;
+  font-size: 72px;
+  line-height: 1;
+  color: var(--purple);
+  background: var(--gold);
+  margin-top: 0;
+}
+/* the number itself — fills the box, centred (Victoire hangs low so pad the
+   bottom to lift it to the optical centre) */
+.team-score .num,
+.team-score .num-out {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 20px;
+  box-sizing: border-box;
+}
+/* roll on change: new slides in, old slides out (up = increase, down = decrease) */
+@keyframes scoreOutUp {
+  to {
+    transform: translateY(-105%);
+    opacity: 0;
+  }
+}
+@keyframes scoreInUp {
+  from {
+    transform: translateY(105%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes scoreOutDown {
+  to {
+    transform: translateY(105%);
+    opacity: 0;
+  }
+}
+@keyframes scoreInDown {
+  from {
+    transform: translateY(-105%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.team-score .roll-out-up {
+  animation: scoreOutUp 0.4s ease forwards;
+}
+.team-score .roll-in-up {
+  animation: scoreInUp 0.4s ease forwards;
+}
+.team-score .roll-out-down {
+  animation: scoreOutDown 0.4s ease forwards;
+}
+.team-score .roll-in-down {
+  animation: scoreInDown 0.4s ease forwards;
+}
+
+.ups-logo {
+  height: 80px; /* bigger center logo */
+  width: auto;
+  object-fit: contain;
+  position: relative;
+  z-index: 50; /* on top of everything (score boxes, cup, cards…) */
+  margin: 0 -30px; /* overlap onto the score boxes so the two 0-boxes sit closer */
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.65));
+  animation: upsFloat 3.6s ease-in-out infinite; /* gentle bob up & down, always */
+}
+@keyframes upsFloat {
+  0%,
+  100% {
+    transform: translateY(4px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}

@@ -1,0 +1,96 @@
+/* ============================================================
+   INTRO REVEAL — played once when the match starts (Start pressed
+   at phase 0). The frame (score bar, timer, backdrop, cup) spreads
+   open from the centre; the pick cards then rise from below,
+   staggered from the inner cards outward, symmetric on both sides.
+
+   Driven by banpick.js toggling `.overlay.shown` / `.overlay.intro`.
+   ============================================================ */
+
+/* Hidden until the match starts. banpick.js adds `.shown` when Start is
+   pressed at phase 0 (and removes it when the draft is reset to a fresh state),
+   plus `.intro` for the one-shot reveal animation. */
+.overlay {
+  opacity: 0;
+}
+.overlay.shown {
+  opacity: 1;
+}
+
+/* frame reveals horizontally from the centre outward — content stays put,
+   only the visible slice grows (clip-path, not scale) */
+@keyframes introRevealX {
+  from {
+    clip-path: inset(0 50% 0 50%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+/* the cup fades up softly from a blurred, faint state */
+@keyframes cupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* a card materialises inside the black backdrop box — fades/de-blurs in with
+   just a small settle, so it never reads as sliding in from outside the frame */
+@keyframes introCardUp {
+  from {
+    transform: translateY(18px) scale(0.96);
+    opacity: 0;
+    filter: blur(5px);
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* the whole frame (except pick cards) reveals from centre → sides, slowly */
+.overlay.intro .scorebar,
+.overlay.intro .timerbar,
+.overlay.intro .pickrow::before,
+.overlay.intro .center {
+  animation: introRevealX 1.6s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* the cup fades/de-blurs in softly as the frame opens */
+.overlay.intro .cup-wrap {
+  animation: cupFadeIn 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+/* pick cards rise from below, inner → outer, both sides in step, after the
+   frame has mostly revealed */
+.overlay.intro .heropick {
+  animation: introCardUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.overlay.intro .pick-left .heropick:nth-child(5),
+.overlay.intro .pick-right .heropick:nth-child(1) {
+  animation-delay: 1.4s;
+}
+.overlay.intro .pick-left .heropick:nth-child(4),
+.overlay.intro .pick-right .heropick:nth-child(2) {
+  animation-delay: 1.55s;
+}
+.overlay.intro .pick-left .heropick:nth-child(3),
+.overlay.intro .pick-right .heropick:nth-child(3) {
+  animation-delay: 1.7s;
+}
+.overlay.intro .pick-left .heropick:nth-child(2),
+.overlay.intro .pick-right .heropick:nth-child(4) {
+  animation-delay: 1.85s;
+}
+.overlay.intro .pick-left .heropick:nth-child(1),
+.overlay.intro .pick-right .heropick:nth-child(5) {
+  animation-delay: 2s;
+}

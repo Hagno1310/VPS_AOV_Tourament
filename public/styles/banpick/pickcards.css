@@ -1,0 +1,388 @@
+/* ============================================================
+   PICK CARDS — the 5+5 hero pick cards.
+
+   Common: purple background + Vector-pick texture, a border,
+   a corner lane badge, a bottom gradient (~33%) and a name.
+   Per team: LEFT = gold accent + lane top-left,
+             RIGHT = purple accent + lane top-right.
+   ============================================================ */
+
+.pickrow {
+  position: relative;
+  isolation: isolate; /* scope the backdrop below the cards/cup */
+  z-index: 4; /* whole pick section (incl. the cup) sits above the timer bar (z 3) */
+  width: 1920px;
+  height: 250px;
+  margin-top: 20px; /* gap above the cards — lifts the score bar + timer up */
+  box-sizing: border-box;
+  padding: 0 33px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+/* black backdrop behind the whole pick section (from just under the timer
+   bar down to the card bottoms), snug to the corners */
+.pickrow::before {
+  content: "";
+  position: absolute;
+  left: 33px;
+  right: 33px;
+  top: 0; /* top edge lowered (no longer reaches up to the timer gap) */
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: -1;
+}
+
+.pick-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  /* clip the intro entrance so cards rise out of the black backdrop box,
+     not up from off the bottom of the screen */
+  overflow: hidden;
+}
+
+/* card shell — purple base + Vector-pick texture (same for both teams) */
+.heropick {
+  position: relative;
+  isolation: isolate; /* scope z-index so player-photo/hero/gradient stack cleanly */
+  width: 155px;
+  height: 236px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 2px solid var(--gold);
+  --flow-cover: 1.65; /* matches the "auto 165%" texture framing (used by pickflow.js) */
+  background:
+    url("../../assets/ui/pick-frame.png") center / auto 165% no-repeat,
+    var(--purple-deep);
+}
+/* team accent on the border */
+.pick-left .heropick {
+  border-color: var(--gold);
+}
+/* LEFT team static fallback: gold streaks over gold #fffbc7 (matches the
+   left-team flow pass in pickflow.js — the flow canvas covers this once loaded) */
+.pick-left .heropick {
+  background:
+    url("../../assets/ui/vector-pick-2.png") center / auto 165% no-repeat,
+    #fffbc7;
+}
+.pick-right .heropick {
+  border-color: #5813b1;
+}
+
+/* bottom gradient (~33%), same colour as the team accent */
+.heropick::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 33%;
+  z-index: 4;
+  pointer-events: none;
+}
+.pick-left .heropick::after {
+  background: linear-gradient(to top, var(--gold) 0%, transparent 100%);
+}
+.pick-right .heropick::after {
+  background: linear-gradient(to top, #5813b1 0%, transparent 100%);
+}
+
+/* hero art fills the card once picked */
+.heropick .image-box {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+.heropick .image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* pick turn indicator element (kept for wiring; not shown) */
+.heropick .pick {
+  display: none;
+}
+
+/* ---- corner lane badge (square, team colour) holding the lane icon ---- */
+.icon-lane {
+  position: absolute;
+  top: 0;
+  width: 42px;
+  height: 42px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.pick-left .icon-lane {
+  left: 0;
+  background: var(--gold);
+}
+.pick-right .icon-lane {
+  right: 0;
+  background: #5813b1;
+}
+/* the lane glyph, masked — colour is the OPPOSITE of the badge:
+   left = purple glyph on gold badge, right = gold glyph on purple badge */
+.icon-lane::after {
+  content: "";
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+.pick-left .icon-lane::after {
+  background-color: #5813b1;
+}
+.pick-right .icon-lane::after {
+  background-color: var(--gold);
+}
+/* blue side lanes (TOP → JUNG → MID → AD → SP) */
+.pick-left .heropick:nth-child(1) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/TOP.svg");
+  mask-image: url("../../assets/lanes/TOP.svg");
+}
+.pick-left .heropick:nth-child(2) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/JUNG.svg");
+  mask-image: url("../../assets/lanes/JUNG.svg");
+}
+.pick-left .heropick:nth-child(3) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/MID.svg");
+  mask-image: url("../../assets/lanes/MID.svg");
+}
+.pick-left .heropick:nth-child(4) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/AD.svg");
+  mask-image: url("../../assets/lanes/AD.svg");
+}
+.pick-left .heropick:nth-child(5) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/SP.svg");
+  mask-image: url("../../assets/lanes/SP.svg");
+}
+/* red side is DOM-mirrored (10..6), so lanes run SP → AD → MID → JUNG → TOP */
+.pick-right .heropick:nth-child(1) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/SP.svg");
+  mask-image: url("../../assets/lanes/SP.svg");
+}
+.pick-right .heropick:nth-child(2) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/AD.svg");
+  mask-image: url("../../assets/lanes/AD.svg");
+}
+.pick-right .heropick:nth-child(3) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/MID.svg");
+  mask-image: url("../../assets/lanes/MID.svg");
+}
+.pick-right .heropick:nth-child(4) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/JUNG.svg");
+  mask-image: url("../../assets/lanes/JUNG.svg");
+}
+.pick-right .heropick:nth-child(5) .icon-lane::after {
+  -webkit-mask-image: url("../../assets/lanes/TOP.svg");
+  mask-image: url("../../assets/lanes/TOP.svg");
+}
+
+/* ---- name sitting tight at the bottom, over the bottom gradient ---- */
+.nameplate {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  padding: 0 6px 5px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-family: "Extenda-30-Deca", sans-serif;
+  font-size: 25px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* text colour is the OPPOSITE of the team accent: left purple, right gold */
+.pick-left .nameplate {
+  color: #5813b1;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
+}
+.pick-right .nameplate {
+  color: var(--gold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- PICK lock effect (synced with the pick SFX): the hero pulses once and a
+   glass-like light sweeps across the card ---- */
+.heropick.lock-fx .image-box img {
+  animation: pickLockPulse 0.5s ease both;
+}
+@keyframes pickLockPulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.heropick.lock-fx::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 7; /* over everything, like a glass reflection */
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%);
+  animation: pickShine 0.65s ease 0.1s both;
+}
+@keyframes pickShine {
+  from {
+    transform: translateX(-130%);
+  }
+  to {
+    transform: translateX(130%);
+  }
+}
+
+/* ============================================================
+   Player photo fills the card behind the hero art. Transparent
+   by default so the purple + texture card background shows; a
+   real uploaded photo overrides it.
+   ============================================================ */
+.heropick .player-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above the card texture background, below the hero art (3) and the card gradient (4) */
+  background-color: transparent;
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  /* zoom in toward the upper body (face + crossed arms), cropping the belly —
+     a touch smaller and nudged down so the face sits slightly lower in the card */
+  transform: translateY(16px) scale(1.32);
+  transform-origin: center 12%;
+}
+/* no veil over the photo — the player portrait keeps its original colours
+   (the bottom team-colour gradient .heropick::after still backs the nameplate) */
+
+/* ============================================================
+   PICK-TURN flowing texture — the Vector-pick layer streams like
+   water behind the (transparent) player photo while it's this
+   card's turn. Element added by banpick.js (ensurePickGlows).
+   ============================================================ */
+/* WebGL flow canvas (created + driven by pickflow.js). It sits over the static
+   texture and below the player photo. The flow ALWAYS animates on every card in
+   full colour; a dark overlay (below) dims it until this card's turn. The shader
+   flows the streaks diagonally with a seamless loop. */
+.card-flow {
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* above the static card texture, below the player photo (2) */
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  opacity: 1;
+}
+/* dark overlay that dims the flow until it's this card's turn. It sits ABOVE the
+   flow (z1) but BELOW the player photo (z2) — same z-index, and as ::before it
+   paints before the photo, so the streaks darken while the player portrait always
+   keeps its true colours. Dropped on the active (picking) card. */
+.heropick::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above the flow (1); paints below the same-z player photo */
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.4);
+  transition: background-color 0.45s ease;
+}
+.heropick.picking::before {
+  background: transparent; /* this card's turn — drop the dim, flow shows full colour */
+}
+
+/* ============================================================
+   PICK-TURN running light — when it's this card's turn to pick, a
+   light with a soft glow runs around the border: it starts at the
+   top-centre, sweeps down BOTH sides to the bottom-centre (a touch
+   slower there), then back up — one loop, repeating until locked.
+   In swap mode banpick.js flags all 10 cards (.picking) at once.
+   Element is added by banpick.js (ensurePickGlows).
+   ============================================================ */
+@property --pa {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 90;
+}
+.pick-turn-glow {
+  display: none;
+}
+/* the border itself lights up a little while it's this card's turn */
+.heropick.picking {
+  box-shadow:
+    inset 0 0 10px rgba(255, 226, 140, 0.45),
+    0 0 9px rgba(246, 201, 62, 0.45);
+}
+.heropick.picking .pick-turn-glow {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 8; /* above hero art, gradient, nameplate and lane badge */
+  pointer-events: none;
+  padding: 3px; /* ring thickness */
+  /* TWO comet heads 180° apart, each with a fading trail behind it; the whole
+     gradient is rotated by --pa so both lights chase each other around the ring */
+  background: conic-gradient(
+    from calc(var(--pa) * 1deg),
+    #fff8dc 0deg,
+    rgba(255, 247, 214, 0) 7deg,
+    rgba(255, 247, 214, 0) 128deg,
+    rgba(255, 240, 190, 0.12) 140deg,
+    rgba(255, 245, 205, 0.55) 170deg,
+    #fff8dc 180deg,
+    rgba(255, 247, 214, 0) 187deg,
+    rgba(255, 247, 214, 0) 308deg,
+    rgba(255, 240, 190, 0.12) 320deg,
+    rgba(255, 245, 205, 0.55) 350deg,
+    #fff8dc 360deg
+  );
+  /* show only the border ring (mask out the interior) */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 4px #ffe79a) drop-shadow(0 0 9px #f2c33e);
+  /* steady, seamless rotation — 360°≡0° so the loop has no stutter */
+  animation: pickRun 1.8s linear infinite;
+}
+@keyframes pickRun {
+  from {
+    --pa: 0;
+  }
+  to {
+    --pa: 360;
+  }
+}
